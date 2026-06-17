@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "packageUrl": "https://download.swg-starforge.com/EntBot-win-x64-v1.0.1.zip",
+  "packageUrl": "https://download.swg-starforge.com/EntBot-win-x64-v1.0.0.zip",
   "sha256": "100F8CA7054200CB2C3264CCDD314BA17A8C81D209489AFAE30B392A948A1B06",
   "publishedAtUtc": "2026-06-14T09:04:31.0921833Z",
   "releaseNotes": "Initial desktop release."
