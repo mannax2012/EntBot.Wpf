@@ -1,13 +1,15 @@
 node_modules/
 .env
 .vs/
+.cache/
 *.user
 *.suo
 
-EntBot.Wpf/bin/
-EntBot.Wpf/obj/
-EntBot.Wpf/publish/
-EntBot.Wpf/bot-settings.json
+bin/
+obj/
+publish/
+bot-settings.json
 
 EntBot.Updater/bin/
 EntBot.Updater/obj/
+EntBot.Wpf/
