@@ -1,4 +1,4 @@
 {
   "versionManifestUrl": "https://raw.githubusercontent.com/mannax2012/EntBot.Wpf/master/version.json",
-  "checkOnStartup": false
+  "checkOnStartup": true
 }

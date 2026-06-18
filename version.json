@@ -1,7 +1,7 @@
-{
-  "version": "1.0.1",
-  "packageUrl": "https://download.swg-starforge.com/EntBot-win-x64-v1.0.1.zip?v=1",
-  "sha256": "5BB16F958A52E612C9BC50ECA4AF839ECF5C1BA59F0B0CBC627E855ACF2300A1",
-  "publishedAtUtc": "2026-06-18T07:33:55.0294114Z",
-  "releaseNotes": "Fix startup failure in desktop builds when dotenv is not present."
+﻿{
+    "version":  "1.0.2",
+    "packageUrl":  "https://download.swg-starforge.com/EntBot-win-x64-v1.0.2.zip",
+    "sha256":  "02B53A85467E24E22CEDF48828F7E1179FE4F620F3669A9DEDE6E127E997B15C",
+    "publishedAtUtc":  "2026-06-18T08:01:01.0530825Z",
+    "releaseNotes":  "Add update download progress logging, improve desktop update feedback, and enable silent startup update checks."
 }

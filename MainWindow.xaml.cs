@@ -1350,7 +1350,7 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(updateWorkspace);
 
         var packageZipPath = Path.Combine(updateWorkspace, "EntBot-update.zip");
-        await DownloadFileAsync(manifest.PackageUrl, packageZipPath);
+        await DownloadFileAsync(manifest.PackageUrl, packageZipPath, AppendLog);
 
         if (!string.IsNullOrWhiteSpace(manifest.Sha256))
         {
@@ -1678,14 +1678,60 @@ public partial class MainWindow : Window
         return (appExePath, string.Empty, appExePath);
     }
 
-    private static async Task DownloadFileAsync(string url, string destinationPath)
+    private static async Task DownloadFileAsync(string url, string destinationPath, Action<string>? logProgress = null)
     {
         using var response = await UpdateHttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
 
+        var totalBytes = response.Content.Headers.ContentLength;
         await using var sourceStream = await response.Content.ReadAsStreamAsync();
         await using var destinationStream = File.Create(destinationPath);
-        await sourceStream.CopyToAsync(destinationStream);
+        var buffer = new byte[81920];
+        long totalBytesRead = 0;
+        long nextByteMilestone = 1024L * 1024;
+        var nextPercentMilestone = 10;
+
+        while (true)
+        {
+            var bytesRead = await sourceStream.ReadAsync(buffer);
+            if (bytesRead == 0)
+            {
+                break;
+            }
+
+            await destinationStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+            totalBytesRead += bytesRead;
+
+            if (totalBytes is > 0)
+            {
+                var percentComplete = (int)((totalBytesRead * 100L) / totalBytes.Value);
+                if (percentComplete >= nextPercentMilestone)
+                {
+                    logProgress?.Invoke(
+                        $"[Update] Download progress: {Math.Min(percentComplete, 100)}% "
+                        + $"({FormatBytes(totalBytesRead)} / {FormatBytes(totalBytes.Value)})");
+
+                    while (nextPercentMilestone <= percentComplete)
+                    {
+                        nextPercentMilestone += 10;
+                    }
+                }
+            }
+            else if (totalBytesRead >= nextByteMilestone)
+            {
+                logProgress?.Invoke($"[Update] Downloaded {FormatBytes(totalBytesRead)}...");
+                while (nextByteMilestone <= totalBytesRead)
+                {
+                    nextByteMilestone += 1024L * 1024;
+                }
+            }
+        }
+
+        await destinationStream.FlushAsync();
+        logProgress?.Invoke(
+            totalBytes is > 0
+                ? $"[Update] Download complete: {FormatBytes(totalBytesRead)} / {FormatBytes(totalBytes.Value)}"
+                : $"[Update] Download complete: {FormatBytes(totalBytesRead)}");
     }
 
     private static string ComputeSha256(string filePath)
@@ -1705,6 +1751,21 @@ public partial class MainWindow : Window
 
         candidatePath = Path.Combine(updaterDirectory, "EntBot.Updater");
         return File.Exists(candidatePath) ? candidatePath : string.Empty;
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
+        double size = bytes;
+        var suffixIndex = 0;
+
+        while (size >= 1024 && suffixIndex < suffixes.Length - 1)
+        {
+            size /= 1024;
+            suffixIndex += 1;
+        }
+
+        return $"{size:0.##} {suffixes[suffixIndex]}";
     }
 
     private static void CopyDirectory(string sourceDirectory, string destinationDirectory)
