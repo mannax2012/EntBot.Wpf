@@ -134,6 +134,7 @@ $releaseManifestJson = $releaseManifest | ConvertTo-Json -Depth 8
 
 Set-Content -LiteralPath (Join-Path $appPublishDir "version.json") -Value $releaseManifestJson -Encoding UTF8
 Set-Content -LiteralPath $releaseManifestPath -Value $releaseManifestJson -Encoding UTF8
+Set-Content -LiteralPath $versionSourcePath -Value $releaseManifestJson -Encoding UTF8
 
 Write-Host "Standalone publish completed:"
 Write-Host "  App folder:      $appPublishDir"

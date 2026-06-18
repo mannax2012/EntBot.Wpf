@@ -1,7 +1,57 @@
 const fs = require('fs');
 const path = require('path');
 
-require('dotenv').config();
+loadEnvironmentFile();
+
+function loadEnvironmentFile() {
+    try {
+        // Prefer dotenv when it is installed for local Node-only workflows.
+        require('dotenv').config();
+        return;
+    } catch (error) {
+        if (error && error.code !== 'MODULE_NOT_FOUND') {
+            console.warn(`[config] Failed to initialize dotenv: ${error.message}`);
+            return;
+        }
+    }
+
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (!fs.existsSync(envPath)) {
+        return;
+    }
+
+    try {
+        const raw = fs.readFileSync(envPath, 'utf8').replace(/^\uFEFF/, '');
+        for (const line of raw.split(/\r?\n/)) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('#')) {
+                continue;
+            }
+
+            const separatorIndex = trimmed.indexOf('=');
+            if (separatorIndex <= 0) {
+                continue;
+            }
+
+            const key = trimmed.slice(0, separatorIndex).trim();
+            if (!key || Object.prototype.hasOwnProperty.call(process.env, key)) {
+                continue;
+            }
+
+            let value = trimmed.slice(separatorIndex + 1).trim();
+            if (
+                (value.startsWith('"') && value.endsWith('"')) ||
+                (value.startsWith("'") && value.endsWith("'"))
+            ) {
+                value = value.slice(1, -1);
+            }
+
+            process.env[key] = value;
+        }
+    } catch (error) {
+        console.warn(`[config] Failed to load .env file: ${error.message}`);
+    }
+}
 
 function hasOwn(object, propertyName) {
     return Boolean(object) && Object.prototype.hasOwnProperty.call(object, propertyName);
